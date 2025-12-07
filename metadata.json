@@ -1,0 +1,7 @@
+{
+  "name": "Voltaire Marcory IVESTP",
+  "description": "Portail numérique du Groupe Scolaire Voltaire Marcory et IVESTP - Gestion scolaire, suivi des notes et administration.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
