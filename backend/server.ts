@@ -660,6 +660,10 @@ app.delete('/api/admin/announcements/:id', adminAuthMiddleware, (req: AuthReques
  * POST /api/student/register
  * Endpoint PUBLIC - Inscription d'un nouvel élève
  * Body: { firstName, lastName, matricule, className, dateOfBirth, parentPhone, password, photo? }
+ * 
+ * Ajoute automatiquement la classe si elle n'existe pas dans:
+ * - Gestion des classes
+ * - Emploi du temps
  */
 app.post('/api/student/register', (req: Request, res: Response) => {
     try {
@@ -679,6 +683,46 @@ app.post('/api/student/register', (req: Request, res: Response) => {
                 success: false,
                 error: 'Ce numéro matricule est déjà enregistré'
             });
+        }
+
+        // 🆕 Vérifier et ajouter automatiquement la classe si elle n'existe pas
+        if (!classes.find(c => c.id === className)) {
+            // Extraire le niveau et la lettre de la classe (ex: "6ème A" -> "6ème", "A")
+            const classNameParts = className.trim().split(' ');
+            const gradeLevel = classNameParts[0] || className;
+            const letter = classNameParts[1] || '';
+            
+            const newClass = {
+                id: className,
+                gradeLevel: gradeLevel,
+                letter: letter,
+                fullName: className,
+                mainTeacher: 'À assigner',
+                studentCount: 0
+            };
+            
+            classes.push(newClass);
+            console.log(`✅ Classe automatiquement créée: ${className}`);
+
+            // 🆕 Ajouter un emploi du temps par défaut pour cette classe
+            const defaultSchedule: ClassSchedule = {
+                classId: className,
+                schedule: [
+                    { day: 'Lundi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Lundi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Mardi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Mardi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Mercredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Mercredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Jeudi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Jeudi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Vendredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
+                    { day: 'Vendredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' }
+                ]
+            };
+            
+            classSchedules.push(defaultSchedule);
+            console.log(`✅ Emploi du temps automatiquement créé pour: ${className}`);
         }
 
         // Créer le nouvel utilisateur
