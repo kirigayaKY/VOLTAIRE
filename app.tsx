@@ -1488,7 +1488,7 @@ const StudentDashboard = ({ user, news, onNavigate, onLogout }: { user: UserData
             {/* Sidebar */}
             <div className="w-full md:w-64 bg-slate-900 text-white p-4 flex flex-col fixed bottom-0 md:relative z-40 md:h-screen">
                 <div className="hidden md:flex items-center gap-2 mb-8 px-2">
-                    <div className="w-8 h-8 bg-voltaire-green rounded-lg flex items-center justify-center font-serif font-bold text-white">V</div>
+                    <img src="/logo.png" alt="Logo Voltaire" className="w-8 h-8 object-contain" />
                     <div>
                         <span className="font-bold text-lg">Espace Élève</span>
                         <p className="text-xs text-slate-400">Voltaire Marcory</p>
@@ -1591,7 +1591,7 @@ const Footer = ({ setSection }: { setSection: (s: Section) => void }) => (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="col-span-1 md:col-span-2">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-voltaire-green rounded-lg flex items-center justify-center font-serif font-bold text-white text-xl">V</div>
+                        <img src="/logo.png" alt="Logo Voltaire" className="w-10 h-10 object-contain" />
                         <div>
                             <span className="font-serif font-bold text-white text-lg block leading-none">VOLTAIRE</span>
                             <span className="text-[10px] uppercase tracking-widest text-prestige-gold font-bold">Marcory • IVESTP</span>
