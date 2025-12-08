@@ -165,24 +165,45 @@ export const INITIAL_CLUBS: ClubData[] = [
 export const INITIAL_PHOTOS: PhotoData[] = [
     {
         id: 1,
-        src: "https://images.unsplash.com/photo-1577896334623-e74235c96169?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+        src: "/photo1.png",
         category: "Vie Scolaire",
         title: "Nos Élèves",
         desc: "Élégance et discipline : nos élèves en tenue de cérémonie."
     },
     {
         id: 2,
-        src: "https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80", 
-        category: "Infrastructures",
-        title: "Le Collège",
-        desc: "Le bâtiment historique du Collège Voltaire Marcory."
+        src: "/photo2.png", 
+        category: "Campus",
+        title: "Campus Voltaire",
+        desc: "Le savoir est la seule richesse qui s'accroît quand on la partage."
     },
     {
         id: 3,
-        src: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+        src: "/photo3.png",
+        category: "Infrastructures",
+        title: "Installations Modernes",
+        desc: "Nos installations sportives et académiques de pointe."
+    },
+    {
+        id: 4,
+        src: "/photo4.png",
+        category: "Vie Scolaire",
+        title: "Événements",
+        desc: "Les moments forts de la vie scolaire à Voltaire."
+    },
+    {
+        id: 5,
+        src: "/photo5.png",
         category: "Enseignement Supérieur",
         title: "Campus IVESTP",
         desc: "L'Institut Voltaire d'Enseignement Supérieur Technique et Professionnel."
+    },
+    {
+        id: 6,
+        src: "/photo6.png",
+        category: "Infrastructures",
+        title: "Environnement",
+        desc: "Un cadre d'études serein et inspirant au cœur de Marcory."
     }
 ];
 

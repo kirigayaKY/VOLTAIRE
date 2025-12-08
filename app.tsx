@@ -216,7 +216,7 @@ const Hero = ({ setSection }: { setSection: (s: Section) => void }) => (
                     className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform rotate-2 transition-all duration-500 cursor-pointer"
                 >
                     <img 
-                        src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                        src="/photo2.png" 
                         alt="Campus Voltaire" 
                         className="w-full h-[500px] object-cover"
                     />
