@@ -24,7 +24,7 @@ import { StudentAnnouncements } from './components/StudentAnnouncements';
 const Logo = ({ className = "h-12" }: { className?: string }) => (
     <div className={`flex items-center gap-3 ${className}`}>
         <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Logo_IVESTP_Voltaire.png" 
+            src="/Gemini_Generated_Image_1i6wa31i6wa31i6w.png" 
             alt="Logo Voltaire" 
             className="h-full object-contain drop-shadow-md"
             onError={(e) => {
@@ -283,7 +283,6 @@ const DirectorWord = () => (
             <div className="w-full md:w-1/3">
                 <div className="relative">
                     <div className="w-full h-[400px] bg-gray-300 rounded-lg overflow-hidden shadow-xl">
-                         <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Le Directeur" className="w-full h-full object-cover" />
                     </div>
                     <div className="absolute -bottom-6 -right-6 bg-white p-4 shadow-lg rounded-lg border-l-4 border-voltaire-green">
                         <p className="font-bold text-slate-800">M. le Directeur Général</p>
@@ -315,7 +314,7 @@ const ServicesSection = () => (
                         transition={{ duration: 0.6 }}
                     >
                         <img 
-                            src="https://images.unsplash.com/photo-1577308856961-0e3523e35287?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                            src="/Gemini_Generated_Image_s00ulms00ulms00u.png" 
                             alt="Cantine Scolaire" 
                             className="rounded-2xl shadow-xl w-full h-[350px] object-cover"
                         />
