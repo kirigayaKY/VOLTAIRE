@@ -501,6 +501,7 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
     const [className, setClassName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [parentPhone, setParentPhone] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
@@ -519,8 +520,15 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
         e.preventDefault();
         setError('');
 
-        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !password) {
+        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !password) {
             setError('Veuillez remplir tous les champs obligatoires.');
+            return;
+        }
+
+        // Valider le format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Veuillez entrer une adresse email valide.');
             return;
         }
 
@@ -548,6 +556,7 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
             firstName,
             lastName: lastName.toUpperCase(),
             password,
+            email: email.toLowerCase(),
             className,
             status: 'active',
             dateOfBirth,
@@ -654,12 +663,12 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Date de Naissance</label>
-                            <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" required />
-                        </div>
-                        <div>
                             <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Numéro Parent/Tuteur</label>
                             <input type="tel" value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" placeholder="+225..." required />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Email</label>
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" placeholder="votre.email@example.com" required />
                         </div>
                     </div>
 
@@ -696,9 +705,15 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
-    const [forgotMatricule, setForgotMatricule] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [forgotError, setForgotError] = useState('');
+    
+    // États pour le système de réinitialisation sécurisé
+    const [resetStep, setResetStep] = useState<'email' | 'code' | 'password'>('email');
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetMatricule, setResetMatricule] = useState('');
+    const [resetCode, setResetCode] = useState('');
+    const [resetPassword, setResetPassword] = useState('');
+    const [resetError, setResetError] = useState('');
+    const [resetLoading, setResetLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -741,26 +756,78 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
         }
     };
 
-    const handleForgotPassword = (e: React.FormEvent) => {
+    // 🔐 Étape 1: Demander le code
+    const handleRequestResetCode = async (e: React.FormEvent) => {
         e.preventDefault();
-        setForgotError('');
-        
-        const user = db.find(u => u.matricule.toUpperCase() === forgotMatricule.toUpperCase() && u.role === type);
-        
-        if (!user) {
-            setForgotError('Matricule non trouvé');
-            return;
-        }
-        
-        if (!newPassword || newPassword.length < 6) {
-            setForgotError('Le mot de passe doit contenir au moins 6 caractères');
-            return;
-        }
+        setResetError('');
+        setResetLoading(true);
 
-        alert(`✅ Mot de passe réinitialisé avec succès!\n\nNouveau mot de passe : ${newPassword}\n\nVous pouvez maintenant vous connecter avec vos nouveaux identifiants.`);
-        setShowForgotPassword(false);
-        setForgotMatricule('');
-        setNewPassword('');
+        try {
+            const response = await fetch('/api/auth/request-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: resetMatricule,
+                    email: resetEmail,
+                    role: type
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setResetStep('code');
+                alert('✅ Code envoyé par email! Vérifiez votre boîte mail (y compris spam).');
+            } else {
+                setResetError(data.error || 'Erreur lors de la demande du code');
+            }
+        } catch (error) {
+            setResetError('Erreur de connexion. Veuillez réessayer.');
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
+    // 🔐 Étape 2: Vérifier le code et changer le mot de passe
+    const handleVerifyReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetError('');
+        setResetLoading(true);
+
+        try {
+            if (!resetPassword || resetPassword.length < 6) {
+                throw new Error('Le mot de passe doit avoir au moins 6 caractères');
+            }
+
+            const response = await fetch('/api/auth/verify-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: resetMatricule,
+                    code: resetCode,
+                    newPassword: resetPassword,
+                    role: type
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Mot de passe réinitialisé avec succès! Vous pouvez maintenant vous connecter.');
+                setShowForgotPassword(false);
+                setResetStep('email');
+                setResetMatricule('');
+                setResetEmail('');
+                setResetCode('');
+                setResetPassword('');
+            } else {
+                setResetError(data.error || 'Erreur lors de la réinitialisation');
+            }
+        } catch (error: any) {
+            setResetError(error.message || 'Erreur');
+        } finally {
+            setResetLoading(false);
+        }
     };
 
     const isStudent = type === 'student';
@@ -770,71 +837,135 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
 
     if (showForgotPassword && !isAdmin) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${bgColor} p-4`}>
+            <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`${isAdmin ? 'bg-slate-800 text-white border border-slate-700' : 'bg-white text-slate-800'} rounded-2xl shadow-2xl p-8 w-full max-w-md relative overflow-hidden`}
+                    className="bg-white text-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-md relative overflow-hidden"
                 >
-                    <div className={`absolute top-0 left-0 w-full h-2 ${accentColor}`}></div>
+                    <div className="absolute top-0 left-0 w-full h-2 bg-voltaire-green"></div>
                     
                     <div className="text-center mb-8 mt-4">
-                        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 bg-voltaire-light text-voltaire-green`}>
+                        <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 bg-voltaire-light text-voltaire-green">
                             <KeyRound size={32} />
                         </div>
                         <h2 className="text-2xl font-bold">Réinitialiser le mot de passe</h2>
-                        <p className="text-sm text-slate-500 mt-2">Entrez votre matricule et votre nouveau mot de passe</p>
+                        <p className="text-sm text-slate-500 mt-2">Processus sécurisé en 3 étapes</p>
                     </div>
 
-                    <form className="space-y-4" onSubmit={handleForgotPassword}>
-                        {forgotError && (
-                            <div className="bg-accent-orange/10 text-accent-orange p-3 rounded-lg text-sm flex items-center gap-2 border border-accent-orange/20">
-                                <AlertCircle size={16} /> {forgotError}
+                    {resetError && (
+                        <div className="bg-accent-orange/10 text-accent-orange p-3 rounded-lg text-sm flex items-center gap-2 border border-accent-orange/20 mb-4">
+                            <AlertCircle size={16} /> {resetError}
+                        </div>
+                    )}
+
+                    {/* Étape 1: Demander le code */}
+                    {resetStep === 'email' && (
+                        <form className="space-y-4" onSubmit={handleRequestResetCode}>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Matricule</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: 23-VM-0012"
+                                    value={resetMatricule}
+                                    onChange={(e) => setResetMatricule(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50"
+                                    required
+                                />
                             </div>
-                        )}
-                        
-                        <div>
-                            <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Matricule</label>
-                            <input 
-                                type="text" 
-                                placeholder="Ex: 23-VM-0012"
-                                value={forgotMatricule}
-                                onChange={(e) => setForgotMatricule(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50"
-                            />
-                        </div>
 
-                        <div>
-                            <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Nouveau mot de passe</label>
-                            <input 
-                                type="password" 
-                                placeholder="••••••••"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50"
-                            />
-                            <p className="text-xs text-slate-500 mt-1">Min. 6 caractères</p>
-                        </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Email</label>
+                                <input 
+                                    type="email" 
+                                    placeholder="votre.email@example.com"
+                                    value={resetEmail}
+                                    onChange={(e) => setResetEmail(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50"
+                                    required
+                                />
+                            </div>
 
-                        <motion.button 
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            className="w-full bg-voltaire-green text-white py-3 rounded-lg font-bold hover:bg-voltaire-dark transition-colors"
-                        >
-                            Réinitialiser
-                        </motion.button>
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                disabled={resetLoading}
+                                className="w-full bg-voltaire-green text-white py-3 rounded-lg font-bold hover:bg-voltaire-dark transition-colors disabled:opacity-50"
+                            >
+                                {resetLoading ? '⏳ Envoi du code...' : '📧 Envoyer le code'}
+                            </motion.button>
 
-                        <motion.button 
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="button"
-                            onClick={() => setShowForgotPassword(false)}
-                            className="w-full bg-slate-200 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-300 transition-colors"
-                        >
-                            Retour à la connexion
-                        </motion.button>
-                    </form>
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="button"
+                                onClick={() => {
+                                    setShowForgotPassword(false);
+                                    setResetStep('email');
+                                }}
+                                className="w-full bg-slate-200 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-300 transition-colors"
+                            >
+                                Retour
+                            </motion.button>
+                        </form>
+                    )}
+
+                    {/* Étape 2: Vérifier le code et nouveau mot de passe */}
+                    {resetStep === 'code' && (
+                        <form className="space-y-4" onSubmit={handleVerifyReset}>
+                            <p className="text-sm text-slate-600 bg-voltaire-light p-3 rounded-lg">
+                                ✅ Code envoyé à {resetEmail}
+                            </p>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Code de vérification</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="000000"
+                                    value={resetCode}
+                                    onChange={(e) => setResetCode(e.target.value.slice(0, 6))}
+                                    maxLength={6}
+                                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50 text-center text-2xl tracking-widest font-bold"
+                                    required
+                                />
+                                <p className="text-xs text-slate-500 mt-1">Code valide 5 minutes</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Nouveau mot de passe</label>
+                                <input 
+                                    type="password" 
+                                    placeholder="••••••••"
+                                    value={resetPassword}
+                                    onChange={(e) => setResetPassword(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-voltaire-green focus:outline-none transition-colors bg-slate-50"
+                                    required
+                                />
+                                <p className="text-xs text-slate-500 mt-1">Min. 6 caractères</p>
+                            </div>
+
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                disabled={resetLoading}
+                                className="w-full bg-voltaire-green text-white py-3 rounded-lg font-bold hover:bg-voltaire-dark transition-colors disabled:opacity-50"
+                            >
+                                {resetLoading ? '⏳ Réinitialisation...' : '✅ Réinitialiser'}
+                            </motion.button>
+
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="button"
+                                onClick={() => setResetStep('email')}
+                                className="w-full bg-slate-200 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-300 transition-colors"
+                            >
+                                ← Retour
+                            </motion.button>
+                        </form>
+                    )}
                 </motion.div>
             </div>
         );
@@ -1721,6 +1852,7 @@ const App = () => {
                     className: newUser.className,
                     dateOfBirth: newUser.dateOfBirth,
                     parentPhone: newUser.parentPhone,
+                    email: newUser.email,
                     password: newUser.password,
                     photo: newUser.photo
                 })

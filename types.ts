@@ -16,6 +16,7 @@ export interface UserData {
     firstName: string;
     lastName: string;
     password: string;
+    email?: string;
     status?: 'active' | 'blocked';
     className?: string;
     childMatricule?: string;

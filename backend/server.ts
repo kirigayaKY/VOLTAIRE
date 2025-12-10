@@ -1,10 +1,60 @@
 import express, { Request, Response, Application } from 'express';
 import cors from 'cors';
+import nodemailer from 'nodemailer';
 import { UserData, AnnouncementData, ClassSchedule, StudentGrade } from '../types';
 import { INITIAL_USERS, INITIAL_ANNOUNCEMENTS, CLASS_SCHEDULES } from '../data';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
+
+// === Configuration Email (Nodemailer) ===
+// Pour Gmail: Utiliser un mot de passe d'application (App Password)
+// https://support.google.com/accounts/answer/185833
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'votre_email@gmail.com',
+        pass: process.env.EMAIL_PASSWORD || 'votre_mot_de_passe_app'
+    }
+});
+
+// Test de connexion email
+transporter.verify((error, success) => {
+    if (error) {
+        console.log('⚠️ Email configuration error:', error.message);
+        console.log('📧 Email sending will be disabled until configured properly');
+    } else {
+        console.log('✅ Email service ready');
+    }
+});
+
+// === Stockage des codes de vérification temporaires ===
+interface ResetCode {
+    matricule: string;
+    code: string;
+    expiresAt: number;
+    role: string;
+}
+let resetCodes: ResetCode[] = [];
+
+// === Fonction d'envoi d'email ===
+const sendEmail = async (to: string, subject: string, htmlContent: string): Promise<boolean> => {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || 'Voltaire School <noreply@voltaire.school>',
+            to: to,
+            subject: subject,
+            html: htmlContent
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Email envoyé à: ${to}`);
+        return true;
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
+        return false;
+    }
+};
 
 // Middleware
 app.use(cors());
@@ -659,7 +709,7 @@ app.delete('/api/admin/announcements/:id', adminAuthMiddleware, (req: AuthReques
 /**
  * POST /api/student/register
  * Endpoint PUBLIC - Inscription d'un nouvel élève
- * Body: { firstName, lastName, matricule, className, dateOfBirth, parentPhone, password, photo? }
+ * Body: { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, photo? }
  * 
  * Ajoute automatiquement la classe si elle n'existe pas dans:
  * - Gestion des classes
@@ -667,13 +717,22 @@ app.delete('/api/admin/announcements/:id', adminAuthMiddleware, (req: AuthReques
  */
 app.post('/api/student/register', (req: Request, res: Response) => {
     try {
-        const { firstName, lastName, matricule, className, dateOfBirth, parentPhone, password, photo } = req.body;
+        const { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, photo } = req.body;
 
         // Validation des champs obligatoires
-        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !password) {
+        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !password) {
             return res.status(400).json({
                 success: false,
-                error: 'Données manquantes (firstName, lastName, matricule, className, dateOfBirth, parentPhone, password)'
+                error: 'Données manquantes (firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password)'
+            });
+        }
+
+        // Valider le format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Adresse email invalide'
             });
         }
 
@@ -682,6 +741,14 @@ app.post('/api/student/register', (req: Request, res: Response) => {
             return res.status(400).json({
                 success: false,
                 error: 'Ce numéro matricule est déjà enregistré'
+            });
+        }
+
+        // Vérifier que l'email n'existe pas
+        if (users.find(u => u.email?.toLowerCase() === email.toLowerCase())) {
+            return res.status(400).json({
+                success: false,
+                error: 'Cet email est déjà enregistré'
             });
         }
 
@@ -733,6 +800,7 @@ app.post('/api/student/register', (req: Request, res: Response) => {
             firstName,
             lastName: lastName.toUpperCase(),
             password, // En production, hasher le mot de passe
+            email: email.toLowerCase(),
             className,
             status: 'active',
             dateOfBirth,
@@ -762,6 +830,200 @@ app.post('/api/student/register', (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             error: 'Erreur lors de l\'inscription'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/request-reset
+ * Génère et envoie un code de réinitialisation par email
+ * Body: { matricule, email, role }
+ */
+app.post('/api/auth/request-reset', async (req: Request, res: Response) => {
+    try {
+        const { matricule, email, role } = req.body;
+
+        if (!matricule || !email || !role) {
+            return res.status(400).json({
+                success: false,
+                error: 'Matricule, email et rôle requis'
+            });
+        }
+
+        // Vérifier que l'utilisateur existe
+        const user = users.find(u => 
+            u.matricule.toUpperCase() === matricule.toUpperCase() && 
+            u.role === role &&
+            u.email?.toLowerCase() === email.toLowerCase()
+        );
+
+        if (!user) {
+            // Ne pas révéler si l'utilisateur existe (sécurité)
+            return res.status(400).json({
+                success: false,
+                error: 'Matricule, email ou rôle incorrect'
+            });
+        }
+
+        // Générer un code aléatoire de 6 chiffres
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 5 * 60 * 1000; // Valide 5 minutes
+
+        // Supprimer les anciens codes
+        resetCodes = resetCodes.filter(rc => rc.matricule !== matricule);
+
+        // Ajouter le nouveau code
+        resetCodes.push({
+            matricule,
+            code,
+            expiresAt,
+            role
+        });
+
+        // Envoyer l'email avec le code
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #17a34a;">Réinitialisation de mot de passe</h2>
+                <p>Bonjour ${user.firstName} ${user.lastName},</p>
+                <p>Vous avez demandé la réinitialisation de votre mot de passe pour le Groupe Scolaire Voltaire.</p>
+                <div style="background-color: #f0f0f0; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <p style="margin: 0; font-size: 12px; color: #666;">Votre code de vérification:</p>
+                    <h1 style="margin: 10px 0; color: #17a34a; letter-spacing: 5px;">${code}</h1>
+                    <p style="margin: 0; font-size: 12px; color: #999;">Valide pendant 5 minutes</p>
+                </div>
+                <p style="color: #666; font-size: 12px;">
+                    Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+                </p>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                <p style="color: #999; font-size: 11px; text-align: center;">
+                    © 2025 Groupe Scolaire Voltaire Marcory
+                </p>
+            </div>
+        `;
+
+        const emailSent = await sendEmail(
+            user.email || email,
+            '🔐 Code de réinitialisation de mot de passe - Voltaire',
+            emailHtml
+        );
+
+        if (!emailSent) {
+            return res.status(500).json({
+                success: false,
+                error: 'Erreur lors de l\'envoi du code par email'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Code envoyé par email. Vérifiez votre boîte mail (y compris spam).',
+            data: {
+                matricule: matricule,
+                codeSent: true
+            }
+        });
+    } catch (error) {
+        console.error('Erreur reset-request:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la demande de réinitialisation'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/verify-reset
+ * Vérifie le code et change le mot de passe
+ * Body: { matricule, code, newPassword, role }
+ */
+app.post('/api/auth/verify-reset', (req: Request, res: Response) => {
+    try {
+        const { matricule, code, newPassword, role } = req.body;
+
+        if (!matricule || !code || !newPassword || !role) {
+            return res.status(400).json({
+                success: false,
+                error: 'Données manquantes'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                error: 'Le mot de passe doit avoir au moins 6 caractères'
+            });
+        }
+
+        // Vérifier le code
+        const resetCode = resetCodes.find(rc => 
+            rc.matricule === matricule && 
+            rc.code === code &&
+            rc.role === role
+        );
+
+        if (!resetCode) {
+            return res.status(400).json({
+                success: false,
+                error: 'Code de vérification incorrect'
+            });
+        }
+
+        // Vérifier l'expiration
+        if (resetCode.expiresAt < Date.now()) {
+            resetCodes = resetCodes.filter(rc => rc !== resetCode);
+            return res.status(400).json({
+                success: false,
+                error: 'Code expiré. Demandez un nouveau code.'
+            });
+        }
+
+        // Trouver et mettre à jour l'utilisateur
+        const user = users.find(u => u.matricule === matricule && u.role === role);
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: 'Utilisateur non trouvé'
+            });
+        }
+
+        // Changer le mot de passe
+        user.password = newPassword;
+
+        // Supprimer le code utilisé
+        resetCodes = resetCodes.filter(rc => rc !== resetCode);
+
+        // Envoyer un email de confirmation
+        const confirmationHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #17a34a;">✅ Mot de passe réinitialisé</h2>
+                <p>Bonjour ${user.firstName} ${user.lastName},</p>
+                <p>Votre mot de passe a été réinitialisé avec succès.</p>
+                <p>Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+                <p style="margin-top: 30px; color: #999; font-size: 12px;">
+                    Si vous n'avez pas changé votre mot de passe, veuillez contacter l'administration.
+                </p>
+            </div>
+        `;
+
+        sendEmail(
+            user.email || '',
+            '✅ Mot de passe réinitialisé - Voltaire',
+            confirmationHtml
+        );
+
+        res.json({
+            success: true,
+            message: 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.',
+            data: {
+                matricule: matricule,
+                role: role
+            }
+        });
+    } catch (error) {
+        console.error('Erreur verify-reset:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la vérification'
         });
     }
 });
