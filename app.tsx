@@ -506,6 +506,8 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData, ins
     const [inscriptionCode, setInscriptionCode] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [photo, setPhoto] = useState<string | null>(null);
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -689,11 +691,43 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData, ins
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Mot de passe</label>
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" placeholder="Min. 6 caractères" required />
+                            <div className="relative">
+                                <input 
+                                    type={showPassword ? "text" : "password"}
+                                    value={password} 
+                                    onChange={(e) => setPassword(e.target.value)} 
+                                    className="w-full px-4 pr-10 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" 
+                                    placeholder="Min. 6 caractères" 
+                                    required 
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Confirmer mot de passe</label>
-                            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" placeholder="Répéter mot de passe" required />
+                            <div className="relative">
+                                <input 
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword} 
+                                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                                    className="w-full px-4 pr-10 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" 
+                                    placeholder="Répéter mot de passe" 
+                                    required 
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1192,8 +1226,6 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
-                        <p className="text-right text-xs text-slate-400 mt-1 italic">
-                            (Test: 123456)
                         </p>
                         {onRegisterClick && (
                             <div className="flex justify-between items-center mt-2">
