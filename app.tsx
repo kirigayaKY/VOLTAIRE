@@ -1118,14 +1118,6 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
                                     </button>
                                 </div>
                             </div>
-                            <div className="mt-2 flex items-center justify-between">
-                                <span className="text-xs text-slate-500">
-                                    <span className="font-bold text-slate-400">Test ID:</span> admin
-                                </span>
-                                <span className="text-xs text-slate-500">
-                                    <span className="font-bold text-slate-400">Test MDP:</span> 08546517
-                                </span>
-                            </div>
                         </div>
 
                         {/* Submit Button */}
@@ -1226,7 +1218,6 @@ const Login = ({ type, goBack, onLoginSuccess, db, onRegisterClick }: { type: 's
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
-                        </p>
                         {onRegisterClick && (
                             <div className="flex justify-between items-center mt-2">
                                 <motion.button
