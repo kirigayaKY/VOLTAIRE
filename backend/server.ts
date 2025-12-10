@@ -976,17 +976,18 @@ app.post('/api/student/register', (req: Request, res: Response) => {
             // 🆕 Ajouter un emploi du temps par défaut pour cette classe
             const defaultSchedule: ClassSchedule = {
                 classId: className,
+                className: className,
                 schedule: [
-                    { day: 'Lundi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Lundi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Mardi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Mardi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Mercredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Mercredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Jeudi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Jeudi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Vendredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner' },
-                    { day: 'Vendredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner' }
+                    { day: 'Lundi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Lundi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Mardi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Mardi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Mercredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Mercredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Jeudi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Jeudi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Vendredi', time: '08:00-09:30', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' },
+                    { day: 'Vendredi', time: '09:45-11:15', subject: 'À planifier', teacher: 'À assigner', room: 'À assigner' }
                 ]
             };
             
