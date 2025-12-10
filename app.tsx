@@ -494,7 +494,7 @@ const Gallery = ({ photos }: { photos: PhotoData[] }) => {
     );
 };
 
-const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => void, goBack: () => void, db: UserData[] }) => {
+const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData, inscriptionCode: string) => void, goBack: () => void, db: UserData[] }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [matricule, setMatricule] = useState('');
@@ -502,6 +502,7 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [parentPhone, setParentPhone] = useState('');
     const [email, setEmail] = useState('');
+    const [inscriptionCode, setInscriptionCode] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
@@ -520,7 +521,7 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
         e.preventDefault();
         setError('');
 
-        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !password) {
+        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !inscriptionCode || !password) {
             setError('Veuillez remplir tous les champs obligatoires.');
             return;
         }
@@ -529,6 +530,12 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Veuillez entrer une adresse email valide.');
+            return;
+        }
+
+        // Valider le code d'inscription (8 caractères)
+        if (inscriptionCode.length < 6) {
+            setError('Code d\'inscription invalide.');
             return;
         }
 
@@ -569,7 +576,8 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
             grades: []
         };
 
-        onRegister(newUser);
+        // Passer aussi le code d'inscription
+        onRegister(newUser, inscriptionCode);
     };
 
     return (
@@ -660,7 +668,6 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
                             </select>
                         </div>
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Numéro Parent/Tuteur</label>
@@ -670,6 +677,12 @@ const Register = ({ onRegister, goBack, db }: { onRegister: (user: UserData) => 
                             <label className="block text-xs font-bold uppercase mb-1 text-slate-600">Email</label>
                             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:border-voltaire-green focus:outline-none" placeholder="votre.email@example.com" required />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold uppercase mb-1 text-slate-600">🔐 Code d'Inscription Voltaire</label>
+                        <input type="text" value={inscriptionCode} onChange={(e) => setInscriptionCode(e.target.value.toUpperCase())} className="w-full px-4 py-2 border-2 border-voltaire-green rounded-lg focus:border-voltaire-dark focus:outline-none font-bold tracking-widest text-center" placeholder="Entrer le code fourni par l'école" maxLength={10} required />
+                        <p className="text-xs text-slate-500 mt-1">⚠️ Code obligatoire - Contactez l'administration si vous n'en avez pas</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1838,7 +1851,7 @@ const App = () => {
         }
     };
 
-    const handleRegister = async (newUser: UserData) => {
+    const handleRegister = async (newUser: UserData, inscriptionCode: string) => {
         try {
             const response = await fetch('/api/student/register', {
                 method: 'POST',
@@ -1854,6 +1867,7 @@ const App = () => {
                     parentPhone: newUser.parentPhone,
                     email: newUser.email,
                     password: newUser.password,
+                    inscriptionCode: inscriptionCode,
                     photo: newUser.photo
                 })
             });

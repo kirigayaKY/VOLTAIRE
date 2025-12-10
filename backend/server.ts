@@ -37,6 +37,16 @@ interface ResetCode {
 }
 let resetCodes: ResetCode[] = [];
 
+// === Stockage des codes d'inscription éphémères (Codes Voltaire) ===
+interface InscriptionCode {
+    code: string;
+    createdAt: number;
+    expiresAt: number;
+    isUsed: boolean;
+    usedBy?: string; // Matricule de l'élève qui l'a utilisé
+}
+let inscriptionCodes: InscriptionCode[] = [];
+
 // === Fonction d'envoi d'email ===
 const sendEmail = async (to: string, subject: string, htmlContent: string): Promise<boolean> => {
     try {
@@ -108,6 +118,172 @@ const adminAuthMiddleware = (req: AuthRequest, res: Response, next: any) => {
     req.adminId = admin.id;
     next();
 };
+
+// === ENDPOINTS: CODES D'INSCRIPTION (Sécurisation des inscriptions) ===
+
+/**
+ * POST /api/admin/codes/generate
+ * Génère un nouveau code d'inscription éphémère (30 minutes)
+ * Accessible uniquement aux admins
+ */
+app.post('/api/admin/codes/generate', adminAuthMiddleware, (req: AuthRequest, res: Response) => {
+    try {
+        // Générer un code aléatoire (8 caractères alphanumériques)
+        const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const now = Date.now();
+        const expiresAt = now + (30 * 60 * 1000); // 30 minutes
+
+        const newCode: InscriptionCode = {
+            code,
+            createdAt: now,
+            expiresAt,
+            isUsed: false
+        };
+
+        inscriptionCodes.push(newCode);
+
+        console.log(`✅ Code d'inscription généré: ${code} (valide 30 min)`);
+
+        res.json({
+            success: true,
+            message: 'Code d\'inscription généré avec succès',
+            data: {
+                code: code,
+                expiresAt: expiresAt,
+                expiresIn: '30 minutes'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la génération du code'
+        });
+    }
+});
+
+/**
+ * POST /api/admin/codes/generate-batch
+ * Génère plusieurs codes d'inscription à la fois
+ */
+app.post('/api/admin/codes/generate-batch', adminAuthMiddleware, (req: AuthRequest, res: Response) => {
+    try {
+        const { quantity } = req.body;
+
+        if (!quantity || quantity < 1 || quantity > 50) {
+            return res.status(400).json({
+                success: false,
+                error: 'Quantité invalide (1-50)'
+            });
+        }
+
+        const generatedCodes = [];
+        const now = Date.now();
+        const expiresAt = now + (30 * 60 * 1000);
+
+        for (let i = 0; i < quantity; i++) {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            const newCode: InscriptionCode = {
+                code,
+                createdAt: now,
+                expiresAt,
+                isUsed: false
+            };
+            inscriptionCodes.push(newCode);
+            generatedCodes.push(code);
+        }
+
+        console.log(`✅ ${quantity} codes d'inscription générés`);
+
+        res.json({
+            success: true,
+            message: `${quantity} codes générés avec succès`,
+            data: {
+                codes: generatedCodes,
+                expiresIn: '30 minutes'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la génération des codes'
+        });
+    }
+});
+
+/**
+ * GET /api/admin/codes
+ * Retourne tous les codes d'inscription
+ */
+app.get('/api/admin/codes', adminAuthMiddleware, (req: AuthRequest, res: Response) => {
+    try {
+        const now = Date.now();
+
+        // Trier les codes : actifs en premier, puis expirés
+        const codes = inscriptionCodes
+            .map(c => ({
+                code: c.code,
+                status: c.isUsed ? 'used' : (c.expiresAt > now ? 'active' : 'expired'),
+                createdAt: new Date(c.createdAt).toLocaleString('fr-FR'),
+                expiresAt: new Date(c.expiresAt).toLocaleString('fr-FR'),
+                isUsed: c.isUsed,
+                usedBy: c.usedBy || null
+            }))
+            .sort((a, b) => {
+                if (a.status === 'active' && b.status !== 'active') return -1;
+                if (a.status !== 'active' && b.status === 'active') return 1;
+                return 0;
+            });
+
+        const stats = {
+            total: codes.length,
+            active: codes.filter(c => c.status === 'active').length,
+            used: codes.filter(c => c.status === 'used').length,
+            expired: codes.filter(c => c.status === 'expired').length
+        };
+
+        res.json({
+            success: true,
+            stats,
+            data: codes
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la récupération des codes'
+        });
+    }
+});
+
+/**
+ * DELETE /api/admin/codes/:code
+ * Supprime un code d'inscription (désactive)
+ */
+app.delete('/api/admin/codes/:code', adminAuthMiddleware, (req: AuthRequest, res: Response) => {
+    try {
+        const { code } = req.params;
+        const index = inscriptionCodes.findIndex(c => c.code === code);
+
+        if (index === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Code non trouvé'
+            });
+        }
+
+        inscriptionCodes.splice(index, 1);
+        console.log(`✅ Code supprimé: ${code}`);
+
+        res.json({
+            success: true,
+            message: 'Code supprimé avec succès'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de la suppression du code'
+        });
+    }
+});
 
 // === ENDPOINTS: CLASSES ===
 
@@ -709,21 +885,47 @@ app.delete('/api/admin/announcements/:id', adminAuthMiddleware, (req: AuthReques
 /**
  * POST /api/student/register
  * Endpoint PUBLIC - Inscription d'un nouvel élève
- * Body: { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, photo? }
+ * Body: { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, inscriptionCode, photo? }
  * 
+ * SÉCURITÉ: Requires valid inscription code (ephemeral token)
  * Ajoute automatiquement la classe si elle n'existe pas dans:
  * - Gestion des classes
  * - Emploi du temps
  */
 app.post('/api/student/register', (req: Request, res: Response) => {
     try {
-        const { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, photo } = req.body;
+        const { firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password, inscriptionCode, photo } = req.body;
 
         // Validation des champs obligatoires
-        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !password) {
+        if (!firstName || !lastName || !matricule || !className || !dateOfBirth || !parentPhone || !email || !password || !inscriptionCode) {
             return res.status(400).json({
                 success: false,
-                error: 'Données manquantes (firstName, lastName, matricule, className, dateOfBirth, parentPhone, email, password)'
+                error: 'Données manquantes (incluant inscriptionCode)'
+            });
+        }
+
+        // 🔐 VALIDATION DU CODE D'INSCRIPTION (Sécurité)
+        const now = Date.now();
+        const codeRecord = inscriptionCodes.find(c => c.code === inscriptionCode);
+
+        if (!codeRecord) {
+            return res.status(403).json({
+                success: false,
+                error: 'Code d\'inscription invalide'
+            });
+        }
+
+        if (codeRecord.isUsed) {
+            return res.status(403).json({
+                success: false,
+                error: 'Ce code a déjà été utilisé'
+            });
+        }
+
+        if (codeRecord.expiresAt < now) {
+            return res.status(403).json({
+                success: false,
+                error: 'Ce code d\'inscription a expiré (valide 30 minutes)'
             });
         }
 
@@ -814,6 +1016,11 @@ app.post('/api/student/register', (req: Request, res: Response) => {
         };
 
         users.push(newUser);
+
+        // 🔐 Marquer le code comme utilisé (sécurité)
+        codeRecord.isUsed = true;
+        codeRecord.usedBy = matricule;
+        console.log(`✅ Code d'inscription utilisé par: ${matricule}`);
 
         res.json({
             success: true,
