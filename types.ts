@@ -1,5 +1,5 @@
 
-export type Section = 'home' | 'login-student' | 'login-admin' | 'register-student' | 'student-dash' | 'admin-dash' | 'admin-grades' | 'admin-schedule' | 'admin-announcements' | 'ivestp' | 'history' | 'contact' | 'gallery';
+export type Section = 'home' | 'login-student' | 'login-admin' | 'register-student' | 'student-dash' | 'admin-dash' | 'admin-grades' | 'admin-schedule' | 'admin-announcements' | 'ivestp' | 'treichville' | 'history' | 'contact' | 'gallery';
 
 export interface GradeData {
     subject: string;

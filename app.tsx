@@ -64,6 +64,7 @@ const Navbar = ({ setSection, currentSection }: { setSection: (s: Section) => vo
 
     const navItems = [
         { id: 'home', label: 'Accueil' },
+        { id: 'treichville', label: 'Collège Treichville' },
         { id: 'ivestp', label: 'Université IVESTP' },
         { id: 'gallery', label: 'Galerie' },
         { id: 'history', label: 'Histoire' },
@@ -1986,6 +1987,254 @@ const App = () => {
                                         </motion.div>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {section === 'treichville' && (
+                        <div className="pt-24 pb-20 bg-slate-50 min-h-screen">
+                            <div className="container mx-auto px-4">
+                                {/* Header */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: -30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-center mb-16"
+                                >
+                                    <span className="text-prestige-gold font-bold uppercase tracking-widest text-sm mb-2 block">École Annexe</span>
+                                    <h1 className="text-5xl font-serif font-bold text-slate-900 mb-6">Voltaire Treichville</h1>
+                                    <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                                        Fondé en 1959, le Collège Voltaire Treichville est une institution d'excellence du secondaire, offrant un enseignement de qualité et une formation complète de la 6ème à la Terminale.
+                                    </p>
+                                </motion.div>
+
+                                {/* Key Stats */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+                                    <motion.div whileHover={{ y: -5 }} className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-voltaire-green text-center">
+                                        <div className="text-4xl font-bold text-voltaire-green mb-2">500+</div>
+                                        <p className="text-slate-600 font-semibold">Élèves Scolarisés</p>
+                                    </motion.div>
+                                    <motion.div whileHover={{ y: -5 }} className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-prestige-gold text-center">
+                                        <div className="text-4xl font-bold text-prestige-gold mb-2">65+</div>
+                                        <p className="text-slate-600 font-semibold">Ans d'Excellence</p>
+                                    </motion.div>
+                                    <motion.div whileHover={{ y: -5 }} className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-accent-orange text-center">
+                                        <div className="text-4xl font-bold text-accent-orange mb-2">6ème-Tle</div>
+                                        <p className="text-slate-600 font-semibold">Tous les Niveaux</p>
+                                    </motion.div>
+                                    <motion.div whileHover={{ y: -5 }} className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-blue-500 text-center">
+                                        <div className="text-4xl font-bold text-blue-500 mb-2">95%</div>
+                                        <p className="text-slate-600 font-semibold">Taux de Réussite</p>
+                                    </motion.div>
+                                </div>
+
+                                {/* Programmes */}
+                                <div className="mb-16">
+                                    <h2 className="text-3xl font-serif font-bold text-slate-900 mb-8 text-center">Nos Programmes</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -30 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-voltaire-green"
+                                        >
+                                            <h3 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                <GraduationCap className="text-voltaire-green" /> 1er Cycle
+                                            </h3>
+                                            <p className="text-slate-600 mb-6">De la 6ème à la 3ème - Formation générale complète avec tous les niveaux du secondaire inférieur</p>
+                                            <ul className="space-y-2">
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-voltaire-green"></div> Classes de 6ème à 3ème
+                                                </li>
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-voltaire-green"></div> Enseignement général
+                                                </li>
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-voltaire-green"></div> Effectifs limités par classe
+                                                </li>
+                                            </ul>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ opacity: 0, x: 30 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-accent-orange"
+                                        >
+                                            <h3 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                <BookOpen className="text-accent-orange" /> 2nd Cycle
+                                            </h3>
+                                            <p className="text-slate-600 mb-6">De la 2nde à la Terminale - Spécialisation en trois séries scientifiques et littéraires</p>
+                                            <ul className="space-y-2">
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-accent-orange"></div> Série A (Littéraire)
+                                                </li>
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-accent-orange"></div> Série C (Scientifique)
+                                                </li>
+                                                <li className="flex items-center gap-2 text-slate-700">
+                                                    <div className="w-2 h-2 rounded-full bg-accent-orange"></div> Série D (Scientifique)
+                                                </li>
+                                            </ul>
+                                        </motion.div>
+                                    </div>
+                                </div>
+
+                                {/* Avantages */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -30 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.6 }}
+                                    >
+                                        <h2 className="text-3xl font-serif font-bold text-slate-900 mb-8">Nos Avantages</h2>
+                                        <div className="space-y-4">
+                                            <div className="flex items-start gap-4 p-4 bg-white rounded-lg border-l-4 border-voltaire-green shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-8 h-8 rounded-full bg-voltaire-green flex items-center justify-center text-white font-bold flex-shrink-0">✓</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 mb-1">Classes à Effectif Réduit</h4>
+                                                    <p className="text-sm text-slate-600">Maximum 30 élèves par classe pour un suivi personnalisé et une meilleure pédagogie</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-4 p-4 bg-white rounded-lg border-l-4 border-voltaire-green shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-8 h-8 rounded-full bg-voltaire-green flex items-center justify-center text-white font-bold flex-shrink-0">✓</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 mb-1">Laboratoires Équipés</h4>
+                                                    <p className="text-sm text-slate-600">Accès aux sciences avec équipements modernes pour les expériences pratiques</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-4 p-4 bg-white rounded-lg border-l-4 border-voltaire-green shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-8 h-8 rounded-full bg-voltaire-green flex items-center justify-center text-white font-bold flex-shrink-0">✓</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 mb-1">Cantine de Qualité</h4>
+                                                    <p className="text-sm text-slate-600">Repas équilibrés et nutritionnellement contrôlés tous les jours</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-4 p-4 bg-white rounded-lg border-l-4 border-voltaire-green shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-8 h-8 rounded-full bg-voltaire-green flex items-center justify-center text-white font-bold flex-shrink-0">✓</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 mb-1">Surveillance 24/7</h4>
+                                                    <p className="text-sm text-slate-600">Sécurité renforcée avec personnel de surveillance qualifié</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-4 p-4 bg-white rounded-lg border-l-4 border-voltaire-green shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="w-8 h-8 rounded-full bg-voltaire-green flex items-center justify-center text-white font-bold flex-shrink-0">✓</div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 mb-1">Encadrement Personnalisé</h4>
+                                                    <p className="text-sm text-slate-600">Équipe pédagogique qualifiée et bienveillante pour chaque élève</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 30 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.6 }}
+                                        className="bg-gradient-to-br from-voltaire-green/10 to-prestige-gold/10 p-8 rounded-2xl border border-voltaire-green/20 space-y-6"
+                                    >
+                                        <div>
+                                            <h2 className="text-3xl font-serif font-bold text-slate-900 mb-8">Informations</h2>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-voltaire-green mb-2 flex items-center gap-2">
+                                                <MapPin size={20} /> Localisation
+                                            </h4>
+                                            <p className="text-slate-700 text-sm">Treichville, Abidjan<br/>Côte d'Ivoire</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-voltaire-green mb-2 flex items-center gap-2">
+                                                <Phone size={20} /> Téléphone (Treichville)
+                                            </h4>
+                                            <p className="text-slate-700 text-sm">+225 21 24 10 82<br/>+225 21 26 43 16</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-voltaire-green mb-2 flex items-center gap-2">
+                                                <Mail size={20} /> Email
+                                            </h4>
+                                            <p className="text-slate-700 text-sm">institutvoltaireci@gmail.com</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-voltaire-green mb-2 flex items-center gap-2">
+                                                <Clock size={20} /> Horaires
+                                            </h4>
+                                            <p className="text-slate-700 text-sm">Lundi - Vendredi: 7h30 - 17h00<br/>Samedi: 8h00 - 12h00</p>
+                                        </div>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setSection('contact')}
+                                            className="w-full mt-6 px-6 py-3 bg-voltaire-green text-white font-bold rounded-lg hover:bg-voltaire-dark transition-colors"
+                                        >
+                                            Nous Contacter
+                                        </motion.button>
+                                    </motion.div>
+                                </div>
+
+                                {/* Activités */}
+                                <div className="mb-16">
+                                    <h2 className="text-3xl font-serif font-bold text-slate-900 mb-8 text-center">Activités & Clubs</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        {['⚽ Football', '🏀 Basketball', '🎭 Théâtre', '🎵 Musique', '📚 Littérature', '💻 Informatique'].map((club, idx) => (
+                                            <motion.div
+                                                key={idx}
+                                                whileHover={{ y: -8, scale: 1.05 }}
+                                                className="bg-white p-6 rounded-xl shadow-md border border-slate-100 text-center hover:shadow-lg hover:border-voltaire-green transition-all cursor-pointer"
+                                            >
+                                                <div className="text-3xl mb-2">{club.split(' ')[0]}</div>
+                                                <h3 className="font-bold text-slate-800 text-sm">{club.split(' ').slice(1).join(' ')}</h3>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Historique */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 mb-16"
+                                >
+                                    <h2 className="text-3xl font-serif font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                        <Trophy className="text-prestige-gold" /> Notre Historique
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <h3 className="font-bold text-2xl text-prestige-gold mb-2">1959</h3>
+                                            <p className="text-slate-600">Fondation par M. ORMON Léon - Débuts d'une institution d'excellence à Treichville</p>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-2xl text-voltaire-green mb-2">+65 ans</h3>
+                                            <p className="text-slate-600">D'expérience et de tradition académique au service de la qualité éducative</p>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-2xl text-accent-orange mb-2">Leader</h3>
+                                            <p className="text-slate-600">L'une des meilleures structures privées de formation éducative de Treichville</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Groupe Voltaire */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    className="bg-gradient-to-r from-voltaire-green/5 to-prestige-gold/5 p-8 rounded-2xl border border-voltaire-green/20"
+                                >
+                                    <h2 className="text-3xl font-serif font-bold text-slate-900 mb-6">Le Groupe Institut Voltaire</h2>
+                                    <p className="text-slate-700 mb-6 leading-relaxed">
+                                        Voltaire Treichville fait partie de l'Institut Voltaire, un groupe éducatif complet qui assure une continuité pédagogique jusqu'au supérieur. Nos élèves peuvent poursuivre leurs études dans nos propres institutions de niveau supérieur.
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-voltaire-green">
+                                            <h4 className="font-bold text-slate-900 mb-2">Voltaire Marcory</h4>
+                                            <p className="text-sm text-slate-600">Campus secondaire à Marcory avec infrastructure moderne</p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-prestige-gold">
+                                            <h4 className="font-bold text-slate-900 mb-2">IVESTP</h4>
+                                            <p className="text-sm text-slate-600">Institut d'Enseignement Supérieur avec formations BTS, Licence et Master</p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-accent-orange">
+                                            <h4 className="font-bold text-slate-900 mb-2">Continuité</h4>
+                                            <p className="text-sm text-slate-600">Parcours éducatif complet de la 6ème jusqu'au Master</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
                     )}
